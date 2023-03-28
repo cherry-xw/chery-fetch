@@ -1,0 +1,25 @@
+{
+  "name": "xchery-fetch",
+  "version": "1.0.0",
+  "description": "fecch with DDD",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "xchery",
+    "fetch"
+  ],
+  "author": "xchery",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "nanoid": "^4.0.2"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.192",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
+    "eslint": "^8.36.0"
+  }
+}

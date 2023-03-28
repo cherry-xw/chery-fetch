@@ -1,0 +1,1 @@
+DDD fetch function
