@@ -111,28 +111,29 @@ export function ServeCreator<T = any>(prefixURL: string, methodOrConfig: API.Met
     paramsOrConfig?: API.QueryParams | TConfig$1<G>,
     config?: TConfig$1<G>
   ) {
+    const cloneOption = Object.assign({}, options)
     // 如果是一个简单字符串
     // 如果第二个参数是字符串，说明没有传入默认类型
     if (typeof methodOrParams === "string") {
       if (methodOrParams === "GET" || methodOrParams === "POST") {
-        options.method = methodOrParams;
+        cloneOption.method = methodOrParams;
         // 先合并后面的
         if (config) {
-          Object.assign(options, config);
+          Object.assign(cloneOption, config);
         }
         // 前面的优先级更高替换后面的值
         if (paramsOrConfig) {
-          options.params = paramsOrConfig;
+          cloneOption.params = paramsOrConfig;
         }
       } else {
         throw new Error("不支持的Method类型");
       }
     } else {
       // methodOrParams肯定是params， paramsOrConfig如果存在，肯定是config，config这时候肯定是空的
-      Object.assign(options, paramsOrConfig);
-      options.params = methodOrParams;
+      Object.assign(cloneOption, paramsOrConfig);
+      cloneOption.params = methodOrParams;
     }
-    return baseRequest<G>(Object.assign({} as API.Options<G>, options, { url: prefixURL + url }));
+    return baseRequest<G>(Object.assign({} as API.Options<G>, cloneOption, { url: prefixURL + url }));
   };
 }
 
