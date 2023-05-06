@@ -1,8 +1,30 @@
-import { isObject, isObjectLike } from "lodash";
+import { isObject, isObjectLike, isUndefined } from "lodash";
 import * as utils from "../utils";
 import "isomorphic-fetch";
 
+// function mockHeader() {
+//   const headers: Record<string, string> = {};
+//   return {
+//     set(k: string, v: string) {
+//       headers[k] = v;
+//     },
+//     delete(k: string) {
+//       delete headers[k];
+//     },
+//     has(k: string) {
+//       return !isUndefined(headers[k]);
+//     },
+//     get(k: string) {
+//       return headers[k];
+//     },
+//     valueOf() {
+//       return headers;
+//     }
+//   };
+// }
+
 function prepareFetchParams<T = any>(option: API.Options<T>, controller: AbortController) {
+  // const headers = mockHeader();
   // 声明header实例
   const headers = new Headers();
   // 先将默认传入的Header存入
@@ -17,7 +39,7 @@ function prepareFetchParams<T = any>(option: API.Options<T>, controller: AbortCo
   const fetchOption: RequestInit = {
     method: option.method,
     signal: controller.signal,
-    headers
+    headers: headers.valueOf()
   };
 
   let requestData = option.params;
@@ -97,16 +119,30 @@ export const processFetchInputAndOutput: API.MiddlewareHandle<API.Context<any>> 
   try {
     const res = await fetch(fetchUrl, fetchOption);
     // ------------------发送请求后对数据进行处理---------------------
-    let contentType = (fetchOption?.headers as Headers | null)?.get("Content-Type");
+    let contentType = (fetchOption?.headers as Record<string, string> | null)?.["Content-Type"] || null;
     if (!contentType) {
       // 优先使用指定的返回数据类型，不然再从响应类型里面判断
       contentType = options.responseType || res.headers.get("Content-Type");
     }
     ctx.response.result = res;
     ctx.response.data = sendFetchAndProcessResponse(res, contentType);
-    await next();
   } catch (error) {
     ctx.response.error = error;
-    throw error;
   }
+  await next();
 };
+
+declare module "../base" {
+  interface TOptions<T> {
+    /**
+     * 请求参数自定义序列化操作(可以截留或修改请求参数)
+     * @param params 传入的请求函数
+     * @returns 返回实际发出请求使用的参数
+     */
+    paramsSerializer?: (params: TQueryParams) => BodyInit | void;
+    /**
+     * 指定响应数据类型
+     */
+    responseType?: XMLHttpRequestResponseType;
+  }
+}
