@@ -1,25 +1,4 @@
-import { fromPairs, isArrayBuffer, isObjectLike, toString } from "lodash";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import md5 from "js-md5";
-import * as utils from "../utils";
-
-function toHash(url: string, params: API.QueryParams) {
-  let str = url;
-  if (params) {
-    if (isArrayBuffer(params)) {
-      str += String.fromCharCode.apply(null, new Uint16Array(params) as any);
-    } else if (utils.isFormData(params)) {
-      const obj = fromPairs([...params.entries()]);
-      str += JSON.stringify(obj);
-    } else if (utils.isBlob(params)) {
-      str += params.text();
-    } else if (isObjectLike(params)) {
-      str += toString(params);
-    }
-  }
-  return md5(str);
-}
+import { toHash } from "../utils";
 
 const cache: Record<string, { data: any; time: number }> = {};
 // 过期时间 30min
@@ -50,3 +29,19 @@ export const processCache: API.MiddlewareHandle<API.Context<any>> = async functi
     }
   }
 };
+
+declare module "../base" {
+  interface TOptions<T> {
+    /**
+     * 是否使用本地缓存，当值为 true 时，GET 请求在 ttl 毫秒内将被缓存，缓存策略唯一 key 为 url + params + method 组合
+     * 缓存会增加内存资源消耗，但是可以消除多次重复请求
+     */
+    useLocalCache?: boolean;
+    /**
+     * 检查是否会将数据缓存到本地，仅在useLocalCache为true时会触发调用
+     * @param data 被检查response数据
+     * @returns true表示数据需要缓存，false表示数据不需要被缓存
+     */
+    checkResultToCache?: (data: T) => boolean;
+  }
+}

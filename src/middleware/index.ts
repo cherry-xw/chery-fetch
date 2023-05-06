@@ -2,6 +2,7 @@ import compose from "./compose";
 
 /**
  * 后添加的先执行
+ * new Middleware 入参数组顺序与add函数相反
  */
 export default class Middleware<Ctx> {
   // 存储中间件的列表
@@ -17,6 +18,7 @@ export default class Middleware<Ctx> {
    */
   add(handle: API.MiddlewareHandle<Ctx>) {
     this.__events__.unshift(handle);
+    return this;
   }
   /**
    * 执行中间件
@@ -32,11 +34,18 @@ export default class Middleware<Ctx> {
    */
   extend(instance: Middleware<Ctx>) {
     this.__events__ = instance.events;
+    return this;
   }
   /**
    * 当前中间件列表
    */
   get events() {
     return this.__events__.slice();
+  }
+  /**
+   * 用于将当前对象生成新实例
+   */
+  clone<T extends Ctx>() {
+    return new Middleware<T>(this.__events__);
   }
 }

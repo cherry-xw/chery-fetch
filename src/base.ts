@@ -28,7 +28,7 @@ export type TRequestReturnType<T> = {
    */
   loadingRef: { readonly state: boolean };
 };
-export type TOptions<T> = {
+export interface TOptions<T> {
   method: API.Method;
   url: string;
   /**
@@ -40,28 +40,7 @@ export type TOptions<T> = {
    */
   middleware: Middleware<TContext<T>>;
   headers?: Record<string, string>;
-  /**
-   * 请求参数自定义序列化操作(可以截留或修改请求参数)
-   * @param params 传入的请求函数
-   * @returns 返回实际发出请求使用的参数
-   */
-  paramsSerializer?: (params: TQueryParams) => BodyInit | void;
-  /**
-   * 指定响应数据类型
-   */
-  responseType?: XMLHttpRequestResponseType;
-  /**
-   * 是否使用本地缓存，当值为 true 时，GET 请求在 ttl 毫秒内将被缓存，缓存策略唯一 key 为 url + params + method 组合
-   * 缓存会增加内存资源消耗，但是可以消除多次重复请求
-   */
-  useLocalCache?: boolean;
-  /**
-   * 检查是否会将数据缓存到本地，仅在useLocalCache为true时会触发调用
-   * @param data 被检查response数据
-   * @returns true表示数据需要缓存，false表示数据不需要被缓存
-   */
-  checkResultToCache?: (data: T) => boolean;
-};
+}
 export type TContext<T> = {
   /**
    * 标记当前ctx是否已经被消费
@@ -97,6 +76,9 @@ function request<T>(options: TOptions<T>): TRequestReturnType<T> {
       loading.state = true;
       await options.middleware.exec(ctx, eachMiddlewareInject);
       loading.state = false;
+      if (ctx.response.error) {
+        throw ctx.response.error;
+      }
       return ctx.response.data as T;
     };
   return {
