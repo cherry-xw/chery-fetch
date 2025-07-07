@@ -24,8 +24,8 @@ export const processCache: API.MiddlewareHandle<API.Context<any>> = async functi
   await next();
   // 如果发完请求后需要存储本地缓存，并且请求没报错，请求回来的数据校验没问题
   if ((options.useLocalCache || options.addLocalCache) && !ctx.response.error) {
-    const checkH = options.checkResultToCache || (data => true);
-    if (checkH(ctx.response.data)) {
+    const checkH = options.checkResultToCache || (() => true);
+    if (checkH(ctx.request.options, ctx.response.data)) {
       cache[hash] = {
         data: await ctx.response.data,
         time: Date.now(),
@@ -45,10 +45,10 @@ declare module "../base" {
     useLocalCache?: boolean;
     /**
      * 检查是否会将数据缓存到本地，仅在useLocalCache为true时会触发调用
-     * @param data 被检查response数据
+     * @param response 被检查response数据
      * @returns true表示数据需要缓存，false表示数据不需要被缓存
      */
-    checkResultToCache?: (data: T) => boolean;
+    checkResultToCache?: (options: TOptions<T>, response: T) => boolean;
     /**
      * 本地缓存过期时间，单位毫秒，默认30min
      */
