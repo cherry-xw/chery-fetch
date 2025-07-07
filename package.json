@@ -1,6 +1,6 @@
 {
   "name": "chery-fetch",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "fecch with DDD",
   "main": "index.ts",
   "scripts": {
