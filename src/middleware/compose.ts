@@ -1,10 +1,13 @@
 export default function compose<Context>(middleware: API.MiddlewareHandle<Context>[]) {
-  return async function (context: Context, eachMiddlewareInject?: (ctx: Context, state: "enter" | "exit", functionName?: string) => void) {
+  return async function (
+    context: Context,
+    eachMiddlewareInject?: (ctx: Context, state: "enter" | "exit", functionName?: string) => void
+  ) {
     let index = -1;
     async function dispatch(idx: number, resetIndex?: boolean): Promise<void> {
       // 这里是一个补丁逻辑，如果随意是使用，可能会导致出现死循环问题
       // 这个操作将next结束判断打断了，同时将next步骤撤回了早先的状态，如下注释伪代码所示
-      if (resetIndex) {
+      if (resetIndex && idx) {
         index = --idx - 1;
       }
       // 假如没有递增，则说明回调中next执行了多次

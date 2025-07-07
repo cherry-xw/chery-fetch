@@ -25,7 +25,10 @@ export default class Middleware<Ctx> {
    * @param ctx 上下文
    * @param eachMiddlewareInject 在每个中间件注入逻辑
    */
-  exec(ctx: Ctx, eachMiddlewareInject?: (ctx: Ctx, state: "enter" | "exit", functionName?: string) => void) {
+  exec(
+    ctx: Ctx,
+    eachMiddlewareInject?: (ctx: Ctx, state: "enter" | "exit", functionName?: string) => void
+  ) {
     return compose<Ctx>(this.__events__)(ctx, eachMiddlewareInject);
   }
   /**

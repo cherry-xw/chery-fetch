@@ -1,9 +1,15 @@
 import { toHash } from "../utils";
 
-const cacheRequest: Record<string, { resolve: (res: any) => void; reject: (res: any) => void }[] | undefined> = {};
+const cacheRequest: Record<
+  string,
+  { ctx: any; resolve: () => void; reject: () => void }[] | undefined
+> = {};
 const cacheState: Record<string, boolean> = {};
 
-export const mergeIdenticalRequests: API.MiddlewareHandle<API.Context<any>> = async function mergeIdenticalRequests(ctx, next) {
+export const mergeIdenticalRequests: API.MiddlewareHandle<API.Context<any>> = async function mergeIdenticalRequests(
+  ctx,
+  next
+) {
   const options = ctx.request.options;
   const hash = toHash(options.url, options.params);
   const useMergeIdenticalRequest = options.useMergeIdenticalRequest;
@@ -11,12 +17,13 @@ export const mergeIdenticalRequests: API.MiddlewareHandle<API.Context<any>> = as
     return new Promise((resolve, reject) => {
       const ch = cacheRequest[hash];
       if (ch) {
-        ch.push({ resolve, reject });
+        ch.push({ resolve, reject, ctx });
       } else {
-        cacheRequest[hash] = [{ resolve, reject }];
+        cacheRequest[hash] = [{ resolve, reject, ctx }];
       }
     });
   }
+  cacheState[hash] = true;
   // 发请求
   await next();
   // 如果发完请求后需要存储本地缓存，并且请求没报错，请求回来的数据校验没问题
@@ -25,20 +32,22 @@ export const mergeIdenticalRequests: API.MiddlewareHandle<API.Context<any>> = as
       const ch = cacheRequest[hash];
       if (ch) {
         ch.forEach(req => {
-          req.resolve(ctx.response.data);
+          req.ctx.response = ctx.response;
+          req.resolve();
         });
       }
-      cacheRequest[hash] = undefined;
     } else {
       const ch = cacheRequest[hash];
       if (ch) {
         ch.forEach(req => {
-          req.reject(ctx.response.error);
+          req.ctx.response = ctx.response;
+          req.reject();
         });
       }
-      cacheRequest[hash] = undefined;
     }
+    cacheRequest[hash] = undefined;
   }
+  cacheState[hash] = false;
 };
 
 declare module "../base" {

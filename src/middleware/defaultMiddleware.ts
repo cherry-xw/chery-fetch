@@ -1,30 +1,8 @@
-import { isObject, isObjectLike, isUndefined } from "lodash";
+import { isObject, isObjectLike } from "lodash";
 import * as utils from "../utils";
-import "isomorphic-fetch";
-
-// function mockHeader() {
-//   const headers: Record<string, string> = {};
-//   return {
-//     set(k: string, v: string) {
-//       headers[k] = v;
-//     },
-//     delete(k: string) {
-//       delete headers[k];
-//     },
-//     has(k: string) {
-//       return !isUndefined(headers[k]);
-//     },
-//     get(k: string) {
-//       return headers[k];
-//     },
-//     valueOf() {
-//       return headers;
-//     }
-//   };
-// }
+// import "isomorphic-fetch";
 
 function prepareFetchParams<T = any>(option: API.Options<T>, controller: AbortController) {
-  // const headers = mockHeader();
   // 声明header实例
   const headers = new Headers();
   // 先将默认传入的Header存入
@@ -39,7 +17,7 @@ function prepareFetchParams<T = any>(option: API.Options<T>, controller: AbortCo
   const fetchOption: RequestInit = {
     method: option.method,
     signal: controller.signal,
-    headers: headers.valueOf()
+    headers
   };
 
   let requestData = option.params;
@@ -49,7 +27,8 @@ function prepareFetchParams<T = any>(option: API.Options<T>, controller: AbortCo
   }
   if (requestData) {
     // 表单数据类型需要去除Content-Type
-    if (utils.isFormData(requestData)) {
+    const isFormPayload = utils.isFormData(requestData);
+    if (isFormPayload) {
       if (headers.has("Content-Type")) {
         headers.delete("Content-Type");
       }
@@ -76,9 +55,11 @@ function prepareFetchParams<T = any>(option: API.Options<T>, controller: AbortCo
       } else {
         fetchUrl += "?" + requestData;
       }
-    } else if (option.method === "POST") {
+    } else {
       if (requestData instanceof URLSearchParams) {
         fetchOption.body = requestData;
+      } else if (isFormPayload) {
+        fetchOption.body = requestData as FormData;
       } else {
         fetchOption.body = JSON.stringify(requestData);
       }
@@ -90,8 +71,15 @@ function prepareFetchParams<T = any>(option: API.Options<T>, controller: AbortCo
 const fileReg = /image|audio|video|zip|gzip|rar|tar|xml|pdf|msword|excel|powerpoint/;
 function sendFetchAndProcessResponse(
   res: Response,
-  contentType: string | null | undefined
-): string | Blob | ArrayBuffer | FormData | Record<string, any> | ReadableStream<Uint8Array> | null {
+  contentType?: string | null | undefined
+):
+  | string
+  | Blob
+  | ArrayBuffer
+  | FormData
+  | Record<string, any>
+  | ReadableStream<Uint8Array>
+  | null {
   if (contentType) {
     if (contentType.includes("json")) {
       return res.json() as Record<string, any>;
@@ -111,26 +99,33 @@ function sendFetchAndProcessResponse(
 }
 
 // 请求输入输出处理中间件
-export const processFetchInputAndOutput: API.MiddlewareHandle<API.Context<any>> = async function processFetchInputAndOutput(ctx, next) {
-  const { options, controller } = ctx.request;
-  // ---------------------------- 请求参数准备 ---------------------------------------
-  const { fetchUrl, fetchOption } = prepareFetchParams(options, controller);
-  // ------------------发送请求---------------------
-  try {
-    const res = await fetch(fetchUrl, fetchOption);
-    // ------------------发送请求后对数据进行处理---------------------
-    let contentType = (fetchOption?.headers as Record<string, string> | null)?.["Content-Type"] || null;
-    if (!contentType) {
-      // 优先使用指定的返回数据类型，不然再从响应类型里面判断
-      contentType = options.responseType || res.headers.get("Content-Type");
+export const processFetchInputAndOutput: API.MiddlewareHandle<API.Context<any>> =
+  async function processFetchInputAndOutput(ctx, next) {
+    const { options, controller } = ctx.request;
+    // ---------------------------- 请求参数准备 ---------------------------------------
+    const { fetchUrl, fetchOption } = prepareFetchParams(options, controller);
+    // ------------------发送请求---------------------
+    try {
+      const res = await fetch(fetchUrl, fetchOption);
+      if (res.ok) {
+        // ------------------发送请求后对数据进行处理---------------------
+        let contentType =
+          (fetchOption?.headers as Record<string, string> | null)?.["Content-Type"] || null;
+        if (!contentType) {
+          // 优先使用指定的返回数据类型，不然再从响应类型里面判断
+          contentType = options.responseType || res.headers.get("Content-Type");
+        }
+        ctx.response.result = res;
+        ctx.contentType = contentType;
+        ctx.response.data = sendFetchAndProcessResponse(res, contentType);
+      } else {
+        ctx.response.error = res;
+      }
+    } catch (error) {
+      ctx.response.error = error;
     }
-    ctx.response.result = res;
-    ctx.response.data = sendFetchAndProcessResponse(res, contentType);
-  } catch (error) {
-    ctx.response.error = error;
-  }
-  await next();
-};
+    await next();
+  };
 
 declare module "../base" {
   interface TOptions<T> {
@@ -139,7 +134,7 @@ declare module "../base" {
      * @param params 传入的请求函数
      * @returns 返回实际发出请求使用的参数
      */
-    paramsSerializer?: (params: TQueryParams) => BodyInit | void;
+    paramsSerializer?: (params: TQueryParams) => TQueryParams;
     /**
      * 指定响应数据类型
      */
