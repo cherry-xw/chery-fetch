@@ -74,11 +74,6 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@types/js-md5@^0.8.0":
-  version "0.8.0"
-  resolved "https://registry.npmjs.org/@types/js-md5/-/js-md5-0.8.0.tgz#de409902b5700c055261ad9914a7696a4709cbd6"
-  integrity sha512-gQkc1Felhyj+aB9jmz/ICLm1fDPQx7l/60JIBSSEC+j09JeaINlzd0Wj9LZlQkHnV5rJYkroOHE5wdbDgADJrw==
-
 "@types/json-schema@^7.0.9":
   version "7.0.11"
   resolved "https://repo.gildata.com:443/artifactory/api/npm/npmhundsun/@types/json-schema/-/json-schema-7.0.11.tgz"
