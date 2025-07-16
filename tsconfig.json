@@ -20,7 +20,8 @@
     "strict": true,
     "module": "esnext",
     "baseUrl": ".",
-    "outDir": "dist",
+    "rootDir": "./src",
+    "outDir": "./dist",
     "paths": {
       "@/*": ["src/*"],
     },
@@ -29,5 +30,5 @@
     "src/**/*.js",
     "src/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist", "example"]
 }

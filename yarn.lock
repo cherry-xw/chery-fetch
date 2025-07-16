@@ -61,7 +61,7 @@
     "@nodelib/fs.stat" "2.0.5"
     run-parallel "^1.1.9"
 
-"@nodelib/fs.stat@^2.0.2", "@nodelib/fs.stat@2.0.5":
+"@nodelib/fs.stat@2.0.5", "@nodelib/fs.stat@^2.0.2":
   version "2.0.5"
   resolved "https://repo.gildata.com:443/artifactory/api/npm/npmhundsun/@nodelib/fs.stat/-/fs.stat-2.0.5.tgz"
   integrity sha1-W9Jir5Tp0lvR5xsF3u1Eh2oiLos=
@@ -73,6 +73,11 @@
   dependencies:
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
+
+"@types/js-md5@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.npmjs.org/@types/js-md5/-/js-md5-0.8.0.tgz#de409902b5700c055261ad9914a7696a4709cbd6"
+  integrity sha512-gQkc1Felhyj+aB9jmz/ICLm1fDPQx7l/60JIBSSEC+j09JeaINlzd0Wj9LZlQkHnV5rJYkroOHE5wdbDgADJrw==
 
 "@types/json-schema@^7.0.9":
   version "7.0.11"
@@ -105,7 +110,7 @@
     semver "^7.3.7"
     tsutils "^3.21.0"
 
-"@typescript-eslint/parser@^5.0.0", "@typescript-eslint/parser@^5.57.0":
+"@typescript-eslint/parser@^5.57.0":
   version "5.57.0"
   resolved "https://repo.gildata.com:443/artifactory/api/npm/npmhundsun/@typescript-eslint/parser/-/parser-5.57.0.tgz"
   integrity sha1-9nW/LNGoOJSf0N5Wg4NEF7dX5Po=
@@ -178,7 +183,7 @@ acorn-jsx@^5.3.2:
   resolved "https://repo.gildata.com:443/artifactory/api/npm/npmhundsun/acorn-jsx/-/acorn-jsx-5.3.2.tgz"
   integrity sha1-ftW7VZCLOy8bxVxq8WU7rafweTc=
 
-"acorn@^6.0.0 || ^7.0.0 || ^8.0.0", acorn@^8.8.0:
+acorn@^8.8.0:
   version "8.8.2"
   resolved "https://repo.gildata.com:443/artifactory/api/npm/npmhundsun/acorn/-/acorn-8.8.2.tgz"
   integrity sha1-Gy8l2wKvllOZuXdrDCw5EnbTfEo=
@@ -247,14 +252,6 @@ chalk@^4.0.0:
   dependencies:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
-
-"chery-fetch@file:../../.nvm/versions/node/v18.20.4/lib/node_modules/chery-fetch":
-  version "0.0.1"
-  resolved "file:../../.nvm/versions/node/v18.20.4/lib/node_modules/chery-fetch"
-  dependencies:
-    js-md5 "^0.7.3"
-    lodash "^4.17.21"
-    nanoid "^4.0.1"
 
 color-convert@^2.0.1:
   version "2.0.1"
@@ -334,7 +331,7 @@ eslint-visitor-keys@^3.3.0:
   resolved "https://repo.gildata.com:443/artifactory/api/npm/npmhundsun/eslint-visitor-keys/-/eslint-visitor-keys-3.4.0.tgz"
   integrity sha1-x/D5VhJM5ncEfdvBkqaPmZRU3tw=
 
-eslint@*, "eslint@^6.0.0 || ^7.0.0 || ^8.0.0", "eslint@^6.0.0 || ^7.0.0 || >=8.0.0", eslint@^8.36.0:
+eslint@^8.36.0:
   version "8.36.0"
   resolved "https://repo.gildata.com:443/artifactory/api/npm/npmhundsun/eslint/-/eslint-8.36.0.tgz"
   integrity sha1-G9ciAiAKVJL5GAOxE/uKg7EShc8=
@@ -881,10 +878,10 @@ type-fest@^0.20.2:
   resolved "https://repo.gildata.com:443/artifactory/api/npm/npmhundsun/type-fest/-/type-fest-0.20.2.tgz"
   integrity sha1-G/IH9LKPkVg2ZstfvTJ4hzAc1fQ=
 
-"typescript@>=2.8.0 || >= 3.2.0-dev || >= 3.3.0-dev || >= 3.4.0-dev || >= 3.5.0-dev || >= 3.6.0-dev || >= 3.6.0-beta || >= 3.7.0-dev || >= 3.7.0-beta":
-  version "5.0.2"
-  resolved "https://repo.gildata.com:443/artifactory/api/npm/npmhundsun/typescript/-/typescript-5.0.2.tgz"
-  integrity sha1-iR4akMUYnYUGr2S575Kfypm6HuU=
+typescript@^5.8.3:
+  version "5.8.3"
+  resolved "https://registry.npmjs.org/typescript/-/typescript-5.8.3.tgz#92f8a3e5e3cf497356f4178c34cd65a7f5e8440e"
+  integrity sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==
 
 uri-js@^4.2.2:
   version "4.4.1"

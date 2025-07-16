@@ -1,10 +1,18 @@
 {
   "name": "chery-fetch",
-  "version": "2.0.0",
+  "version": "1.0.6",
   "description": "fecch with DDD",
-  "main": "index.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/cjs/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:cjs": "tsc --module CommonJS --outDir dist/cjs",
+    "build:esm": "tsc --module ESNext --outDir dist/esm",
+    "build": "npm run build:cjs && npm run build:esm",
+    "prepublishOnly": "npm version patch && npm run build"
   },
   "keywords": [
     "xchery",
@@ -17,9 +25,11 @@
     "nanoid": "^4.0.2"
   },
   "devDependencies": {
+    "@types/js-md5": "^0.8.0",
     "@types/lodash": "^4.14.192",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
-    "eslint": "^8.36.0"
+    "eslint": "^8.36.0",
+    "typescript": "^5.8.3"
   }
 }

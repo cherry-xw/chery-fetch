@@ -3,7 +3,7 @@ import baseRequest, {
   type TContext,
   type TOptions,
   type TQueryParams,
-  type TRequestReturnType
+  type TRequestReturnType,
 } from "./base";
 import CMiddleware from "./middleware";
 
@@ -16,7 +16,7 @@ const METHOD_LIST: API.Method[] = [
   "OPTIONS",
   "HEAD",
   "TRACE",
-  "CONNECT"
+  "CONNECT",
 ];
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -44,15 +44,21 @@ declare global {
   }
 }
 
-import { processFetchInputAndOutput } from "./middleware/defaultMiddleware";
-import { processCache } from "./middleware/localCache";
-import { mergeIdenticalRequests } from "./middleware/mergeIdenticalRequests";
+import core from "./middleware/core";
+import processCache from "./middleware/localCache";
+import mergeDuplicateRequests from "./middleware/mergeDuplicateRequests";
 
-export type TConfig$1<T> = Omit<API.Options<T>, "url" | "method" | "params" | "middleware"> & {
+export type TConfig$1<T> = Omit<
+  API.Options<T>,
+  "url" | "method" | "params" | "middleware"
+> & {
   method?: API.Method;
   middleware?: API.Middleware<API.Context<T>>;
 };
-export type TConfig$2<T> = Omit<API.Options<T>, "method" | "params" | "middleware"> & {
+export type TConfig$2<T> = Omit<
+  API.Options<T>,
+  "method" | "params" | "middleware"
+> & {
   method?: API.Method;
   params?: API.QueryParams;
   middleware?: API.Middleware<API.Context<T>>;
@@ -64,8 +70,8 @@ export type TConfig$2<T> = Omit<API.Options<T>, "method" | "params" | "middlewar
  */
 const middleware = new CMiddleware<API.Context<any>>([
   processCache,
-  mergeIdenticalRequests,
-  processFetchInputAndOutput
+  mergeDuplicateRequests,
+  core,
 ]);
 
 // 直接请求函数重载
@@ -88,9 +94,14 @@ export function request<T = any>(
  * @param requestParam 全量请求参数object
  * @returns 请求函数，中断请求，加载状态
  */
-export function request<T>(requestParam: TConfig$2<T>): API.RequestReturnType<T>;
+export function request<T>(
+  requestParam: TConfig$2<T>
+): API.RequestReturnType<T>;
 
-export function request<T = any>(url: string, params?: API.QueryParams): API.RequestReturnType<T>;
+export function request<T = any>(
+  url: string,
+  params?: API.QueryParams
+): API.RequestReturnType<T>;
 
 export function request<T = any>(
   url: string,
@@ -111,7 +122,7 @@ export function request<T>(
         method: method as API.Method,
         params,
         middleware,
-        ...config
+        ...config,
       });
     } else if (!isUndefined(params)) {
       return baseRequest<T>({
@@ -120,11 +131,16 @@ export function request<T>(
         params: method as API.QueryParams,
         ...(params as TConfig$1<T>),
         middleware,
-        ...config
+        ...config,
       });
     }
   }
-  return baseRequest({ middleware, method: "GET", params: {}, ...(urlOrAll as TConfig$2<T>) });
+  return baseRequest({
+    middleware,
+    method: "GET",
+    params: {},
+    ...(urlOrAll as TConfig$2<T>),
+  });
 }
 
 /**
@@ -182,7 +198,10 @@ export function ServeCreator<T = any>(
  * @param config 配置默认参数
  * @returns promise返回值
  */
-export function ServeCreator<T = any>(prefixURL: string, config: TConfig$1<T>): RequestOverload<T>;
+export function ServeCreator<T = any>(
+  prefixURL: string,
+  config: TConfig$1<T>
+): RequestOverload<T>;
 
 /**
  * 注册服务（注册请求前缀，注入内置参数）
@@ -197,7 +216,12 @@ export function ServeCreator<T = any>(
   defaultConfig?: TConfig$1<T>
 ) {
   // 构建请求参数
-  const options: API.Options<T> = { url: "", middleware, method: "GET", params: {} };
+  const options: API.Options<T> = {
+    url: "",
+    middleware,
+    method: "GET",
+    params: {},
+  };
   if (methodOrConfig && typeof methodOrConfig === "string") {
     options.method = methodOrConfig;
     if (defaultConfig) {
@@ -234,12 +258,14 @@ export function ServeCreator<T = any>(
       Object.assign(rOptions, paramsOrConfig);
       rOptions.params = methodOrParams;
     }
-    return baseRequest<G>(Object.assign({} as API.Options<G>, rOptions, { url: prefixURL + url }));
+    return baseRequest<G>(
+      Object.assign({} as API.Options<G>, rOptions, { url: prefixURL + url })
+    );
   };
 }
 
 // 导出所有中间件逻辑
-export { processFetchInputAndOutput, processCache, mergeIdenticalRequests };
+export { core, processCache, mergeDuplicateRequests };
 export const Middleware = CMiddleware;
 // 导出所有其他相关
 export * as RequestUtils from "./utils";

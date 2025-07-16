@@ -1,5 +1,7 @@
 import { nanoid } from "nanoid";
 import Middleware from "./middleware";
+import { isObject, isObjectLike } from "lodash";
+import * as utils from "./utils";
 
 export type TQueryParams =
   | FormData
@@ -42,7 +44,7 @@ export type TRequestReturnType<T> = {
   readonly url: string;
   loadingRef: { readonly state: boolean };
 };
-export interface TOptions<T> {
+export interface TOptions<T> extends RequestInit {
   method: API.Method;
   url: string;
   /**
@@ -91,6 +93,9 @@ function request<T>(options: TOptions<T>): TRequestReturnType<T> {
       "middleware cannot be empty, Please check the incoming parameters"
     );
   }
+  if (!options.headers) {
+    options.headers = {};
+  }
   const loading = { state: false };
   const ctx: TContext<T> = {
     consumed: false,
@@ -131,20 +136,36 @@ function request<T>(options: TOptions<T>): TRequestReturnType<T> {
       const opt = ctx.request.options;
       if (opt.method === "GET") {
         let needRemove = false;
-        let str = "";
+        let fetchUrl = "";
         if (opt.url.startsWith("http")) {
-          str = opt.url;
+          fetchUrl = opt.url;
         } else {
           needRemove = true;
-          str = `${location.origin}${opt.url}`;
+          fetchUrl = `${location.origin}${opt.url}`;
         }
-        const url = new URL(str);
+        const url = new URL(fetchUrl);
         if (opt.params) {
-          let p: any = opt.params;
-          if (opt.paramsSerializer) p = opt.paramsSerializer(opt.params);
-          Object.entries(p).forEach(([key, value]) => {
-            url.searchParams.set(key, value as string);
-          });
+          let requestData: TQueryParams = opt.params;
+          if (opt.paramsSerializer)
+            requestData = opt.paramsSerializer(opt.params, opt);
+          if (requestData instanceof URLSearchParams) {
+            fetchUrl = utils.connectGetParams(fetchUrl, requestData.toString());
+          } else if (isObject(requestData)) {
+            const usp = new URLSearchParams();
+            for (const key in requestData as Record<string, any>) {
+              if (Object.prototype.hasOwnProperty.call(requestData, key)) {
+                const element = (requestData as Record<string, any>)[key];
+                if (isObjectLike(element)) {
+                  usp.set(key, JSON.stringify(element));
+                } else {
+                  usp.set(key, element);
+                }
+              }
+            }
+            fetchUrl = utils.connectGetParams(fetchUrl, usp.toString());
+          } else {
+            fetchUrl = utils.connectGetParams(fetchUrl, requestData);
+          }
         }
         if (needRemove) {
           return url.toString().replace(location.origin, "");

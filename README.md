@@ -51,7 +51,7 @@ export function ServeCreator<T = any>(prefixURL: string, config: TConfig$1<T>): 
 ```javascript
 const middleware = new Middleware([
   processCache,
-  processFetchInputAndOutput
+  core
 ]);
 export const serve = ServeCreator("https://www.xcherry.top/api", "POST", {
   middleware
@@ -67,10 +67,33 @@ export const serve = ServeCreator("https://www.xcherry.top/api", "POST", {
 ### 项目中默认提供了3个中间件
 
 1. `processCache`后续发起相同请求会直接使用缓存数据
-2. `mergeIdenticalRequests`同时发起相同请求只会发起一个，返回相同结果
-3. `processFetchInputAndOutput`用于发送请求，格式化fetch入参和出参，一般这个总是处于中间件的最后一个（洋葱最中间）
+2. `mergeDuplicateRequests`同时发起相同请求只会发起一个，返回相同结果
+3. `core`用于发送请求，格式化fetch入参和出参，一般这个总是处于中间件的最后一个（洋葱最中间）
 
 ### 中间件配置介绍
+
+#### `core`配置介绍
+
+```javascript
+type CoreConfig = {
+    /**
+     * 请求参数自定义序列化操作(可以截留或修改请求参数)
+     * @param params 传入的请求参数
+     * @param options 传入的所有请求配置
+     * @returns 返回实际发出请求使用的参数
+     */
+    paramsSerializer?: (params: TQueryParams, options: Options<T>) => TQueryParams;
+    /**
+     * 指定响应数据类型
+     */
+    responseType?: XMLHttpRequestResponseType;
+    /**
+     * 请求超时时间，为空或为0（小于0）表示不会超时
+     * @default 0
+     */
+    timeout?: number;
+  }
+```
 
 #### `processCache`配置介绍
 
@@ -94,7 +117,7 @@ type ProcessCacheConfig = {
 }
 ```
 
-#### `mergeIdenticalRequests`配置介绍
+#### `mergeDuplicateRequests`配置介绍
 
 ```javascript
 type MergeIdenticalRequestsConfig = {
@@ -109,7 +132,7 @@ type MergeIdenticalRequestsConfig = {
 
 ### 洋葱圈结构执行示例
 
-中间件的顺序有严格的使用顺序限制，在使用中必须严格校验顺序带的问题
+> 中间件的顺序有严格的使用顺序限制，在使用中必须严格校验顺序带的问题
 
 ```javascript
 function A(ctx, next) {

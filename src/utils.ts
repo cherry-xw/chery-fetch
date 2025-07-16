@@ -1,9 +1,14 @@
 import md5 from "js-md5";
-import { fromPairs, isArrayBuffer as isArrayBufferLodash, isObjectLike, toString as toStringLodash } from "lodash";
+import {
+  fromPairs,
+  isArrayBuffer as isArrayBufferLodash,
+  isObjectLike,
+  toString as toStringLodash,
+} from "lodash";
 
 const typeOfTest = (type: string) => (thing: any) => typeof thing === type;
 
-const kindOf = (cache => (thing: any) => {
+const kindOf = ((cache) => (thing: any) => {
   const str = toString.call(thing);
   return cache[str] || (cache[str] = str.slice(8, -1).toLowerCase());
 })(Object.create(null));
@@ -30,7 +35,7 @@ export function isFormData(requestData: any): requestData is FormData {
 
 // 等待
 export function waitHandle(timeout = 300) {
-  return new Promise<void>(resolve => {
+  return new Promise<void>((resolve) => {
     setTimeout(async () => {
       resolve();
     }, timeout);
@@ -38,7 +43,11 @@ export function waitHandle(timeout = 300) {
 }
 
 // 等待重试（延长等待时间）
-export async function loopWait(checkBreak: () => boolean, loopTimes = 3, timeout = 300) {
+export async function loopWait(
+  checkBreak: () => boolean,
+  loopTimes = 3,
+  timeout = 300
+) {
   for (let index = 0; index < loopTimes; index++) {
     if (checkBreak()) {
       return "done";
@@ -63,4 +72,13 @@ export function toHash(url: string, params: API.QueryParams) {
     }
   }
   return md5(str);
+}
+
+export function connectGetParams(fetchUrl: string, data?: string | void) {
+  if (!data) return fetchUrl;
+  if (fetchUrl.includes("?")) {
+    return fetchUrl + "&" + data;
+  } else {
+    return fetchUrl + "?" + data;
+  }
 }

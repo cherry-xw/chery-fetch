@@ -2,7 +2,7 @@ import {
   Middleware,
   processCache,
   ServeCreator,
-  processFetchInputAndOutput,
+  core,
 } from "chery-fetch";
 
 const serve = ServeCreator("https://www.xcherry.top/api"); // 创建请求实例
@@ -17,7 +17,7 @@ request.loadingRef; // 请求loading状态，在获取时得到最新状态，re
 const middleware = new Middleware([
   // ohter custom middleware
   processCache,
-  processFetchInputAndOutput,
+  core,
 ]);
 const serve1 = ServeCreator("https://www.xcherry.top/api", {
   headers: {
@@ -48,7 +48,7 @@ const res3 = await serve2(
 // 中间件额外操作使用
 
 // processCache 使用示例
-const res = serve(
+const res = await serve(
   "/user/login",
   { username: "", password: "" },
   {
@@ -106,7 +106,7 @@ declare module "chery-fetch/src/base" {
 const middleware1 = new Middleware([
   checkToken,
   processCache,
-  processFetchInputAndOutput,
+  core,
 ]);
 // 挂载中间件
 const serve3 = ServeCreator("https://www.xcherry.top/api", {

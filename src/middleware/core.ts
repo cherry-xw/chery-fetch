@@ -2,7 +2,10 @@ import { isObject, isObjectLike } from "lodash";
 import * as utils from "../utils";
 // import "isomorphic-fetch";
 
-function prepareFetchParams<T = any>(option: API.Options<T>, controller: AbortController) {
+function prepareFetchParams<T = any>(
+  option: API.Options<T>,
+  controller: AbortController
+) {
   // 声明header实例
   const headers = new Headers();
   // 先将默认传入的Header存入
@@ -17,13 +20,40 @@ function prepareFetchParams<T = any>(option: API.Options<T>, controller: AbortCo
   const fetchOption: RequestInit = {
     method: option.method,
     signal: controller.signal,
-    headers
+    headers,
   };
+  if (option.cache) {
+    fetchOption.cache = option.cache;
+  }
+  if (option.credentials) {
+    fetchOption.credentials = option.credentials;
+  }
+  if (option.integrity) {
+    fetchOption.integrity = option.integrity;
+  }
+  if (option.keepalive) {
+    fetchOption.keepalive = option.keepalive;
+  }
+  if (option.mode) {
+    fetchOption.mode = option.mode;
+  }
+  if (option.priority) {
+    fetchOption.priority = option.priority;
+  }
+  if (option.redirect) {
+    fetchOption.redirect = option.redirect;
+  }
+  if (option.referrer) {
+    fetchOption.referrer = option.referrer;
+  }
+  if (option.referrerPolicy) {
+    fetchOption.referrerPolicy = option.referrerPolicy;
+  }
 
   let requestData = option.params;
   let fetchUrl = option.url;
   if (option.paramsSerializer) {
-    requestData = option.paramsSerializer(requestData);
+    requestData = option.paramsSerializer(requestData, option);
   }
   if (requestData) {
     // 表单数据类型需要去除Content-Type
@@ -38,7 +68,7 @@ function prepareFetchParams<T = any>(option: API.Options<T>, controller: AbortCo
     }
     if (option.method === "GET") {
       if (requestData instanceof URLSearchParams) {
-        fetchUrl += "?" + requestData.toString();
+        fetchUrl = utils.connectGetParams(fetchUrl, requestData.toString());
       } else if (isObject(requestData)) {
         const usp = new URLSearchParams();
         for (const key in requestData as Record<string, any>) {
@@ -51,9 +81,9 @@ function prepareFetchParams<T = any>(option: API.Options<T>, controller: AbortCo
             }
           }
         }
-        fetchUrl += "?" + usp.toString();
+        fetchUrl = utils.connectGetParams(fetchUrl, usp.toString());
       } else {
-        fetchUrl += "?" + requestData;
+        fetchUrl = utils.connectGetParams(fetchUrl, requestData);
       }
     } else {
       if (requestData instanceof URLSearchParams) {
@@ -68,7 +98,8 @@ function prepareFetchParams<T = any>(option: API.Options<T>, controller: AbortCo
   return { fetchUrl, fetchOption };
 }
 
-const fileReg = /image|audio|video|zip|gzip|rar|tar|xml|pdf|msword|excel|powerpoint/;
+const fileReg =
+  /image|audio|video|zip|gzip|rar|tar|xml|pdf|msword|excel|powerpoint|blob/;
 function sendFetchAndProcessResponse(
   res: Response,
   contentType?: string | null | undefined
@@ -99,18 +130,28 @@ function sendFetchAndProcessResponse(
 }
 
 // 请求输入输出处理中间件
-export const processFetchInputAndOutput: API.MiddlewareHandle<API.Context<any>> =
+const processFetchInputAndOutput: API.MiddlewareHandle<API.Context<any>> =
   async function processFetchInputAndOutput(ctx, next) {
     const { options, controller } = ctx.request;
     // ---------------------------- 请求参数准备 ---------------------------------------
     const { fetchUrl, fetchOption } = prepareFetchParams(options, controller);
     // ------------------发送请求---------------------
+    let timeoutId: any;
     try {
+      if (options.timeout && options.timeout > 0) {
+        timeoutId = setTimeout(() => {
+          timeoutId = null;
+          controller.abort("request timeout");
+        }, options.timeout);
+      }
       const res = await fetch(fetchUrl, fetchOption);
+      if (timeoutId) clearTimeout(timeoutId);
       if (res.ok) {
         // ------------------发送请求后对数据进行处理---------------------
         let contentType =
-          (fetchOption?.headers as Record<string, string> | null)?.["Content-Type"] || null;
+          (fetchOption?.headers as Record<string, string> | null)?.[
+            "Content-Type"
+          ] || null;
         if (!contentType) {
           // 优先使用指定的返回数据类型，不然再从响应类型里面判断
           contentType = options.responseType || res.headers.get("Content-Type");
@@ -122,22 +163,33 @@ export const processFetchInputAndOutput: API.MiddlewareHandle<API.Context<any>> 
         ctx.response.error = res;
       }
     } catch (error) {
+      if (timeoutId) clearTimeout(timeoutId);
       ctx.response.error = error;
     }
     await next();
   };
 
+export default processFetchInputAndOutput;
 declare module "../base" {
   interface TOptions<T> {
     /**
      * 请求参数自定义序列化操作(可以截留或修改请求参数)
-     * @param params 传入的请求函数
+     * @param params 传入的请求参数
+     * @param options 传入的所有请求配置
      * @returns 返回实际发出请求使用的参数
      */
-    paramsSerializer?: (params: TQueryParams) => TQueryParams;
+    paramsSerializer?: (
+      params: TQueryParams,
+      options: TOptions<T>
+    ) => TQueryParams;
     /**
      * 指定响应数据类型
      */
     responseType?: XMLHttpRequestResponseType;
+    /**
+     * 请求超时时间，为空或为0（小于0）表示不会超时
+     * @default 0
+     */
+    timeout?: number;
   }
 }

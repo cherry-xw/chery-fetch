@@ -1,11 +1,11 @@
 import { toHash } from "../utils";
 
-const cache: Record<string, { data: any; time: number; expiration: number }> = {};
+const cache: Record<string, { data: any; time: number; cacheExpiration: number }> = {};
 // 过期时间 30min
 const EXPIRATION = 1800000;
 // TODO 过期逻辑
 // 缓存处理中间件
-export const processCache: API.MiddlewareHandle<API.Context<any>> = async function processCache(
+const processCache: API.MiddlewareHandle<API.Context<any>> = async function processCache(
   ctx,
   next
 ) {
@@ -15,7 +15,7 @@ export const processCache: API.MiddlewareHandle<API.Context<any>> = async functi
   // 使用本地缓存，并且本地有缓存则取出缓存后直接返回
   if (options.useLocalCache) {
     const cacheObj = cache[hash];
-    if (cacheObj && Date.now() - cacheObj.time < cacheObj.expiration) {
+    if (cacheObj && Date.now() - cacheObj.time < cacheObj.cacheExpiration) {
       ctx.response.data = cacheObj.data;
       return;
     }
@@ -29,12 +29,13 @@ export const processCache: API.MiddlewareHandle<API.Context<any>> = async functi
       cache[hash] = {
         data: await ctx.response.data,
         time: Date.now(),
-        expiration: options.expiration || EXPIRATION
+        cacheExpiration: options.cacheExpiration || EXPIRATION
       };
     }
   }
 };
 
+export default processCache;
 declare module "../base" {
   // eslint-disable-next-line no-unused-vars
   interface TOptions<T> {
@@ -52,7 +53,7 @@ declare module "../base" {
     /**
      * 本地缓存过期时间，单位毫秒，默认30min
      */
-    expiration?: number;
+    cacheExpiration?: number;
     /**
      * 是否将数据缓存到本地，该操作仅会存储值，每次请求都会存
      */
