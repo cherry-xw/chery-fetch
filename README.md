@@ -89,6 +89,7 @@ type CoreConfig = {
     responseType?: XMLHttpRequestResponseType;
     /**
      * 请求超时时间，为空或为0（小于0）表示不会超时
+     * 注意，这个超时是从发出请求开始计算的，如果中途阻断(abort)后再重新发起请求，则重新计算
      * @default 0
      */
     timeout?: number;
