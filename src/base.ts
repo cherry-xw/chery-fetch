@@ -1,6 +1,6 @@
-import { nanoid } from "nanoid";
+import { nanoid } from "./nanoid";
 import Middleware from "./middleware";
-import { isObject, isObjectLike } from "lodash";
+import { isObject, isObjectLike } from "./utils";
 import * as utils from "./utils";
 
 export type TQueryParams =

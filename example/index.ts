@@ -3,7 +3,7 @@ import {
   processCache,
   ServeCreator,
   core,
-} from "chery-fetch";
+} from "..";
 
 const serve = ServeCreator("https://www.xcherry.top/api"); // 创建请求实例
 const request = serve("/user/login", { username: "", password: "" }); // 发送请求
@@ -65,7 +65,7 @@ const res = await serve(
   }
 ).sync;
 
-// 自定义中间件开发示例
+// 自定义中间件简单示例，无感刷新token详见：example/token.ts
 
 function getToken() {
   return "new token";
@@ -79,13 +79,13 @@ async function refreshToken() {
 // 检查token是否过期并自动重新获取
 const checkToken: API.MiddlewareHandle<API.Context<any>> =
   async function checkToken(ctx, next) {
-    if (ctx.request.options.useToken) {
+    if (ctx.request.useToken) {
       const token = getToken();
       ctx.request.headers["Authorization"] = `Bearer ${token}`;
     }
     // 先执行后续中间件
     await next();
-    if (ctx.request.options.useToken) {
+    if (ctx.request.useToken) {
       // 检查token是否过期
       if (ctx.response.data && ctx.response.data.code === 401) {
         // token过期，重新获取token

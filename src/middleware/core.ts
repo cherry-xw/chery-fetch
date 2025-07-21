@@ -1,6 +1,4 @@
-import { isObject, isObjectLike } from "lodash";
 import * as utils from "../utils";
-// import "isomorphic-fetch";
 
 function prepareFetchParams<T = any>(
   option: API.Options<T>,
@@ -9,7 +7,7 @@ function prepareFetchParams<T = any>(
   // 声明header实例
   const headers = new Headers();
   // 先将默认传入的Header存入
-  if (isObject(option.headers)) {
+  if (utils.isObject(option.headers)) {
     for (const key in option.headers) {
       if (Object.prototype.hasOwnProperty.call(option.headers, key)) {
         headers.set(key, option.headers[key]);
@@ -69,12 +67,12 @@ function prepareFetchParams<T = any>(
     if (option.method === "GET") {
       if (requestData instanceof URLSearchParams) {
         fetchUrl = utils.connectGetParams(fetchUrl, requestData.toString());
-      } else if (isObject(requestData)) {
+      } else if (utils.isObject(requestData)) {
         const usp = new URLSearchParams();
         for (const key in requestData as Record<string, any>) {
           if (Object.prototype.hasOwnProperty.call(requestData, key)) {
             const element = (requestData as Record<string, any>)[key];
-            if (isObjectLike(element)) {
+            if (utils.isObjectLike(element)) {
               usp.set(key, JSON.stringify(element));
             } else {
               usp.set(key, element);

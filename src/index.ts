@@ -1,11 +1,10 @@
-import { isUndefined } from "lodash";
 import baseRequest, {
   type TContext,
   type TOptions,
   type TQueryParams,
   type TRequestReturnType,
 } from "./base";
-import CMiddleware from "./middleware";
+import _Middleware from "./middleware";
 
 const METHOD_LIST: API.Method[] = [
   "GET",
@@ -36,7 +35,7 @@ declare global {
     export type QueryParams = TQueryParams;
     export type RequestReturnType<T> = TRequestReturnType<T>;
 
-    export type Middleware<T> = CMiddleware<T>;
+    export type Middleware<T> = _Middleware<T>;
     export type MiddlewareHandle<T> = (
       ctx: T,
       next: (reset?: boolean) => Promise<void>
@@ -47,6 +46,7 @@ declare global {
 import core from "./middleware/core";
 import processCache from "./middleware/localCache";
 import mergeDuplicateRequests from "./middleware/mergeDuplicateRequests";
+import { isUndefined } from "./utils";
 
 export type TConfig$1<T> = Omit<
   API.Options<T>,
@@ -68,7 +68,7 @@ export type TConfig$2<T> = Omit<
  * 添加默认中间件
  * 创建中间件实例，后添加的先执行，缓存逻辑必须放在请求逻辑之前执行，如果不调用next，那么所有后续的逻辑都会被跳过而不会执行
  */
-const middleware = new CMiddleware<API.Context<any>>([
+const middleware = new _Middleware<API.Context<any>>([
   processCache,
   mergeDuplicateRequests,
   core,
@@ -266,6 +266,6 @@ export function ServeCreator<T = any>(
 
 // 导出所有中间件逻辑
 export { core, processCache, mergeDuplicateRequests };
-export const Middleware = CMiddleware;
+export const Middleware = _Middleware;
 // 导出所有其他相关
 export * as RequestUtils from "./utils";
